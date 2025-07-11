@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Board</title>
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ asset('js/kanban.js') }}"></script>
 </head>
 <body>
     <div class="container">
@@ -21,15 +23,15 @@
         
         <div class="kanban-board">
             {{-- Колонка "Задачи" --}}
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="todo">
                 <div class="column-header">
                     <h2 class="column-title">Задачи</h2>
                     <span class="task-count">{{ $tasks->get('todo', collect())->count() }}</span>
                 </div>
                 
-                <div class="column-content">
+                <div class="column-content" data-status="todo">
                     @foreach($tasks->get('todo', collect()) as $task)
-                        <div class="kanban-card" data-priority="{{ $task->priority }}">
+                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" draggable="true">
                             <div class="card-header">
                                 <span class="card-id">#{{ str_pad($task->id, 3, '0', STR_PAD_LEFT) }}</span>
                                 <span class="card-priority">{{ $task->priority }}</span>
@@ -68,15 +70,15 @@
             </div>
 
             {{-- Колонка "В процессе" --}}
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="in_progress">
                 <div class="column-header">
                     <h2 class="column-title">В процессе</h2>
                     <span class="task-count">{{ $tasks->get('in_progress', collect())->count() }}</span>
                 </div>
                 
-                <div class="column-content">
+                <div class="column-content" data-status="in_progress">
                     @foreach($tasks->get('in_progress', collect()) as $task)
-                        <div class="kanban-card" data-priority="{{ $task->priority }}">
+                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" draggable="true">
                             <div class="card-header">
                                 <span class="card-id">#{{ str_pad($task->id, 3, '0', STR_PAD_LEFT) }}</span>
                                 <span class="card-priority">{{ $task->priority }}</span>
@@ -115,15 +117,15 @@
             </div>
 
             {{-- Колонка "Выполнено" --}}
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="done">
                 <div class="column-header">
                     <h2 class="column-title">Выполнено</h2>
                     <span class="task-count">{{ $tasks->get('done', collect())->count() }}</span>
                 </div>
                 
-                <div class="column-content">
+                <div class="column-content" data-status="done">
                     @foreach($tasks->get('done', collect()) as $task)
-                        <div class="kanban-card" data-priority="{{ $task->priority }}">
+                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" draggable="true">
                             <div class="card-header">
                                 <span class="card-id">#{{ str_pad($task->id, 3, '0', STR_PAD_LEFT) }}</span>
                                 <span class="card-priority">{{ $task->priority }}</span>
@@ -162,5 +164,9 @@
             </div>
         </div>
     </div>
+
+    <script>
+
+    </script>
 </body>
 </html>

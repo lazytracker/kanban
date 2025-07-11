@@ -25,6 +25,10 @@ Route::get('/org-sync/test', [OrganizationSyncController::class, 'testConnection
 Route::get('/org-sync/sync', [OrganizationSyncController::class, 'sync'])
     ->name('org-sync.sync');
 
+Route::patch('/tasks/{task}/status', [KanbanController::class, 'updateStatus'])->name('tasks.update-status');
+Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban.index');
+Route::patch('/tasks/{task}/status', [KanbanController::class, 'updateStatus'])->name('tasks.update-status');
+
     
 // Альтернативный способ определения маршрутов:
 // Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
