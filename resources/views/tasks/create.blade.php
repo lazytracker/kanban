@@ -5,187 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создать задачу</title>
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-    <style>
-        /* Стили для поискового выпадающего списка */
-        .search-select {
-            position: relative;
-            width: 100%;
-        }
-
-        .search-select input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            background-color: white;
-            cursor: pointer;
-        }
-
-        .search-select input:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        .search-select .dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 4px 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .search-select .dropdown.show {
-            display: block;
-        }
-
-        .search-select .dropdown-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .search-select .dropdown-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .search-select .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-select .dropdown-item.selected {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .search-select .no-results {
-            padding: 10px;
-            color: #666;
-            font-style: italic;
-        }
-
-        /* Стили для календаря */
-        .date-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .date-input-wrapper input[type="date"] {
-            width: 100%;
-            padding: 10px 40px 10px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .date-input-wrapper .calendar-icon {
-            position: absolute;
-            right: 10px;
-            pointer-events: none;
-            color: #666;
-        }
-
-        .date-input-wrapper input[type="date"]:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        /* Стили для опции "бессрочно" */
-        .indefinite-option {
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .indefinite-option input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
-
-        .indefinite-option label {
-            margin: 0;
-            font-weight: normal;
-            cursor: pointer;
-        }
-
-        .date-group.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        /* Улучшенные стили для формы */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        .error-message {
-            color: #dc3545;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .assignees-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-        }
-
-        .assignee-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .assignee-item input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
-
-        .assignee-item label {
-            margin: 0;
-            font-weight: normal;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -234,8 +53,8 @@
                 <label for="completion_date">Дата завершения *</label>
                 <div class="date-group" id="date_group">
                     <div class="date-input-wrapper">
-                        <input type="date" name="completion_date" id="completion_date" class="form-control" value="{{ old('completion_date') }}">
-                        <span class="calendar-icon">📅</span>
+                        <input type="date" name="completion_date" id="completion_date" class="form-control" value="{{ old('completion_date') }}" lang="ru">
+                        <div class="calendar-icon" id="calendar_icon">📅</div>
                     </div>
                 </div>
                 <div class="indefinite-option">
@@ -424,12 +243,76 @@
             completionDateInput.removeAttribute('required');
         }
 
-        // Улучшенный календарь - клик по всему полю
+        // Принудительное форматирование даты в европейском формате
+        completionDateInput.addEventListener('input', function(e) {
+            // Дополнительная обработка для консистентного отображения может быть добавлена здесь
+        });
+
+        // Функционал календаря
         const dateInputWrapper = document.querySelector('.date-input-wrapper');
-        dateInputWrapper.addEventListener('click', function(e) {
-            if (e.target !== completionDateInput && !dateGroup.classList.contains('disabled')) {
+        const calendarIcon = document.getElementById('calendar_icon');
+
+        // Переменная для отслеживания, был ли клик по input'у
+        let isInputClick = false;
+
+        // Клик по иконке календаря - всегда открывает календарь
+        calendarIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!dateGroup.classList.contains('disabled')) {
                 completionDateInput.focus();
-                completionDateInput.showPicker();
+                setTimeout(() => {
+                    if (completionDateInput.showPicker) {
+                        completionDateInput.showPicker();
+                    }
+                }, 10);
+            }
+        });
+
+        // Клик по wrapper'у - открывает календарь, если не кликнули по input'у
+        dateInputWrapper.addEventListener('click', function(e) {
+            if (!isInputClick && e.target !== completionDateInput && !dateGroup.classList.contains('disabled')) {
+                completionDateInput.focus();
+                setTimeout(() => {
+                    if (completionDateInput.showPicker) {
+                        completionDateInput.showPicker();
+                    }
+                }, 10);
+            }
+            isInputClick = false;
+        });
+
+        // Клик по самому input'у - помечаем, что это клик по input'у
+        completionDateInput.addEventListener('mousedown', function(e) {
+            isInputClick = true;
+        });
+
+        // Дополнительная обработка для открытия календаря при клике в области input'а
+        completionDateInput.addEventListener('click', function(e) {
+            if (!dateGroup.classList.contains('disabled')) {
+                const rect = this.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const inputWidth = rect.width;
+                
+                // Если клик в правых 70% поля - открываем календарь
+                if (clickX > inputWidth * 0.3) {
+                    setTimeout(() => {
+                        if (completionDateInput.showPicker) {
+                            completionDateInput.showPicker();
+                        }
+                    }, 10);
+                }
+            }
+        });
+
+        // Двойной клик по input'у - открывает календарь
+        completionDateInput.addEventListener('dblclick', function(e) {
+            if (!dateGroup.classList.contains('disabled')) {
+                setTimeout(() => {
+                    if (completionDateInput.showPicker) {
+                        completionDateInput.showPicker();
+                    }
+                }, 10);
             }
         });
     </script>
