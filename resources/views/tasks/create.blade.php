@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создать задачу</title>
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <div class="container">
@@ -53,7 +55,7 @@
                 <label for="completion_date">Дата завершения *</label>
                 <div class="date-group" id="date_group">
                     <div class="date-input-wrapper">
-                        <input type="date" name="completion_date" id="completion_date" class="form-control" value="{{ old('completion_date') }}" lang="ru">
+                        <input type="text" name="completion_date" id="completion_date" class="form-control" value="{{ old('completion_date') }}" placeholder="Выберите дату" readonly>
                         <div class="calendar-icon" id="calendar_icon">📅</div>
                     </div>
                 </div>
@@ -104,6 +106,11 @@
             </div>
         </form>
     </div>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Flatpickr Russian locale -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
 
     <script>
         // Данные организаций (в реальном приложении получайте через AJAX)
@@ -221,6 +228,49 @@
             }
         });
 
+        // Инициализация Flatpickr
+        let flatpickrInstance = null;
+
+        function initializeFlatpickr() {
+            if (flatpickrInstance) {
+                flatpickrInstance.destroy();
+            }
+
+            flatpickrInstance = flatpickr("#completion_date", {
+                locale: "ru",
+                dateFormat: "d.m.Y",
+                allowInput: true,
+                clickOpens: true,
+                defaultDate: "{{ old('completion_date') }}",
+                minDate: "today",
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Добавляем обработчики для иконки календаря
+                    const calendarIcon = document.getElementById('calendar_icon');
+                    const dateInputWrapper = document.querySelector('.date-input-wrapper');
+                    
+                    calendarIcon.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!dateGroup.classList.contains('disabled')) {
+                            instance.open();
+                        }
+                    });
+
+                    dateInputWrapper.addEventListener('click', function(e) {
+                        if (e.target !== instance.input && !dateGroup.classList.contains('disabled')) {
+                            instance.open();
+                        }
+                    });
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Дополнительная обработка при изменении даты
+                    if (selectedDates.length > 0) {
+                        // Дата выбрана, можно добавить дополнительную логику
+                    }
+                }
+            });
+        }
+
         // Функционал для опции "бессрочно"
         const indefiniteCheckbox = document.getElementById('indefinite_task');
         const dateGroup = document.getElementById('date_group');
@@ -230,7 +280,10 @@
             if (this.checked) {
                 dateGroup.classList.add('disabled');
                 completionDateInput.removeAttribute('required');
-                completionDateInput.value = '';
+                if (flatpickrInstance) {
+                    flatpickrInstance.clear();
+                    flatpickrInstance.close();
+                }
             } else {
                 dateGroup.classList.remove('disabled');
                 completionDateInput.setAttribute('required', 'required');
@@ -238,81 +291,14 @@
         });
 
         // Инициализация состояния при загрузке
-        if (indefiniteCheckbox.checked) {
-            dateGroup.classList.add('disabled');
-            completionDateInput.removeAttribute('required');
-        }
-
-        // Принудительное форматирование даты в европейском формате
-        completionDateInput.addEventListener('input', function(e) {
-            // Дополнительная обработка для консистентного отображения может быть добавлена здесь
-        });
-
-        // Функционал календаря
-        const dateInputWrapper = document.querySelector('.date-input-wrapper');
-        const calendarIcon = document.getElementById('calendar_icon');
-
-        // Переменная для отслеживания, был ли клик по input'у
-        let isInputClick = false;
-
-        // Клик по иконке календаря - всегда открывает календарь
-        calendarIcon.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!dateGroup.classList.contains('disabled')) {
-                completionDateInput.focus();
-                setTimeout(() => {
-                    if (completionDateInput.showPicker) {
-                        completionDateInput.showPicker();
-                    }
-                }, 10);
-            }
-        });
-
-        // Клик по wrapper'у - открывает календарь, если не кликнули по input'у
-        dateInputWrapper.addEventListener('click', function(e) {
-            if (!isInputClick && e.target !== completionDateInput && !dateGroup.classList.contains('disabled')) {
-                completionDateInput.focus();
-                setTimeout(() => {
-                    if (completionDateInput.showPicker) {
-                        completionDateInput.showPicker();
-                    }
-                }, 10);
-            }
-            isInputClick = false;
-        });
-
-        // Клик по самому input'у - помечаем, что это клик по input'у
-        completionDateInput.addEventListener('mousedown', function(e) {
-            isInputClick = true;
-        });
-
-        // Дополнительная обработка для открытия календаря при клике в области input'а
-        completionDateInput.addEventListener('click', function(e) {
-            if (!dateGroup.classList.contains('disabled')) {
-                const rect = this.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const inputWidth = rect.width;
-                
-                // Если клик в правых 70% поля - открываем календарь
-                if (clickX > inputWidth * 0.3) {
-                    setTimeout(() => {
-                        if (completionDateInput.showPicker) {
-                            completionDateInput.showPicker();
-                        }
-                    }, 10);
-                }
-            }
-        });
-
-        // Двойной клик по input'у - открывает календарь
-        completionDateInput.addEventListener('dblclick', function(e) {
-            if (!dateGroup.classList.contains('disabled')) {
-                setTimeout(() => {
-                    if (completionDateInput.showPicker) {
-                        completionDateInput.showPicker();
-                    }
-                }, 10);
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFlatpickr();
+            
+            if (indefiniteCheckbox.checked) {
+                dateGroup.classList.add('disabled');
+                completionDateInput.removeAttribute('required');
+            } else {
+                completionDateInput.setAttribute('required', 'required');
             }
         });
     </script>

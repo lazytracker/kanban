@@ -602,264 +602,327 @@ body {
     background-color: #6f42c1;
     color: white;
 }
-        /* Стили для поискового выпадающего списка */
-        .search-select {
-            position: relative;
-            width: 100%;
-        }
+/* Стили для поискового выпадающего списка */
+.search-select {
+    position: relative;
+    width: 100%;
+}
 
-        .search-select input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            background-color: white;
-            cursor: pointer;
-        }
+.search-select input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+}
 
-        .search-select input:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
+.search-select input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
 
-        .search-select .dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 4px 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
+.search-select .dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
 
-        .search-select .dropdown.show {
-            display: block;
-        }
+.search-select .dropdown.show {
+    display: block;
+}
 
-        .search-select .dropdown-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-        }
+.search-select .dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
 
-        .search-select .dropdown-item:hover {
-            background-color: #f8f9fa;
-        }
+.search-select .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
 
-        .search-select .dropdown-item:last-child {
-            border-bottom: none;
-        }
+.search-select .dropdown-item:last-child {
+    border-bottom: none;
+}
 
-        .search-select .dropdown-item.selected {
-            background-color: #007bff;
-            color: white;
-        }
+.search-select .dropdown-item.selected {
+    background-color: #007bff;
+    color: white;
+}
 
-        .search-select .no-results {
-            padding: 10px;
-            color: #666;
-            font-style: italic;
-        }
+.search-select .no-results {
+    padding: 10px;
+    color: #666;
+    font-style: italic;
+}
 
-        /* Стили для календаря */
-        .date-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
+/* Стили для календаря */
+.date-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
 
-        .date-input-wrapper input[type="date"] {
-            width: 100%;
-            padding: 10px 40px 10px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: text;
-        }
-        
+.date-input-wrapper input[type="date"] {
+    width: 100%;
+    padding: 10px 40px 10px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: text;
+}
 
-        .date-input-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
-            opacity: 0;
-            cursor: pointer;
-        }
 
-        .date-input-wrapper .calendar-icon {
-            position: absolute;
-            right: 10px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            color: #666;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
+.date-input-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+}
 
-        .date-input-wrapper .calendar-icon svg {
-            width: 18px;
-            height: 18px;
-            fill: #666;
-        }
+.date-input-wrapper .calendar-icon {
+    position: absolute;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    color: #666;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
 
-        .date-input-wrapper input[type="date"]:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
+.date-input-wrapper .calendar-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: #666;
+}
 
-        /* Стили для опции "бессрочно" */
-        .indefinite-option {
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+.date-input-wrapper input[type="date"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
 
-        .indefinite-option input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
+/* Стили для опции "бессрочно" */
+.indefinite-option {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .indefinite-option label {
-            margin: 0;
-            font-weight: normal;
-            cursor: pointer;
-        }
+.indefinite-option input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
 
-        .date-group.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
+.indefinite-option label {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
 
-        /* Улучшенные стили для формы */
-        .form-group {
-            margin-bottom: 20px;
-        }
+.date-group.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
+/* Улучшенные стили для формы */
+.form-group {
+    margin-bottom: 20px;
+}
 
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
 
-        .form-control:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
 
-        .error-message {
-            color: #dc3545;
-            font-size: 12px;
-            margin-top: 5px;
-        }
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
 
-        .assignees-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-        }
+.error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+}
 
-        .assignee-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+.assignees-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+}
 
-        .assignee-item input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
+.assignee-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .assignee-item label {
-            margin: 0;
-            font-weight: normal;
-            cursor: pointer;
-        }
+.assignee-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
 
-        /* Стили для кнопок */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+.assignee-item label {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
 
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+/* Стили для кнопок */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
 
-        .form-header h1 {
-            margin: 0;
-            color: #333;
-        }
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
+.form-header h1 {
+    margin: 0;
+    color: #333;
+}
 
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-        }
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
 
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
+.btn-primary:hover {
+    background-color: #0056b3;
+}
 
-        .btn-secondary:hover {
-            background-color: #545b62;
-        }
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
 
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
+.btn-secondary:hover {
+    background-color: #545b62;
+}
 
-        .task-form {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.task-form {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+/* Дополнительные стили для Flatpickr */
+.flatpickr-calendar {
+    font-family: inherit;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.flatpickr-day.selected {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.flatpickr-day:hover {
+    background: #dbeafe;
+    border-color: #3b82f6;
+}
+
+.flatpickr-day.today {
+    border-color: #3b82f6;
+}
+
+.flatpickr-months .flatpickr-month {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: #f8fafc;
+}
+
+.flatpickr-current-month .numInputWrapper {
+    background: #f8fafc;
+}
+
+/* Стили для отключенного состояния */
+.date-group.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.date-group.disabled .flatpickr-input {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+/* Стили для иконки календаря */
+.calendar-icon {
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.calendar-icon:hover {
+    transform: scale(1.1);
+}
+
+.date-group.disabled .calendar-icon {
+    cursor: not-allowed;
+}
+
+.date-group.disabled .calendar-icon:hover {
+    transform: none;
+}        
