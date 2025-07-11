@@ -11,8 +11,7 @@ class Organization extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description'
+        'name', 'shortname1', 'shortname2'
     ];
 
     public function tasks()
