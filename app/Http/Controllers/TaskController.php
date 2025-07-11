@@ -24,11 +24,26 @@ class TaskController extends Controller
             'organization_id' => 'required|exists:organizations,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'completion_date' => 'required|date|after:today',
+            'completion_date' => 'nullable|date|after:today',
+            'indefinite_task' => 'nullable|boolean',
             'priority' => 'required|integer|min:1|max:10',
             'assignees' => 'array',
             'assignees.*' => 'exists:users,id'
         ]);
+
+        // Проверяем логику даты завершения
+        if (!$request->has('indefinite_task') || !$request->indefinite_task) {
+            // Если задача не бессрочная, дата обязательна
+            $request->validate([
+                'completion_date' => 'required|date|after:today'
+            ]);
+        } else {
+            // Если задача бессрочная, очищаем дату
+            $validated['completion_date'] = null;
+        }
+
+        // Удаляем indefinite_task из validated данных, так как это поле не существует в таблице
+        unset($validated['indefinite_task']);
 
         $task = Task::create($validated);
 
@@ -54,11 +69,26 @@ class TaskController extends Controller
             'organization_id' => 'required|exists:organizations,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'completion_date' => 'required|date|after:today',
+            'completion_date' => 'nullable|date|after:today',
+            'indefinite_task' => 'nullable|boolean',
             'priority' => 'required|integer|min:1|max:10',
             'assignees' => 'array',
             'assignees.*' => 'exists:users,id'
         ]);
+
+        // Проверяем логику даты завершения
+        if (!$request->has('indefinite_task') || !$request->indefinite_task) {
+            // Если задача не бессрочная, дата обязательна
+            $request->validate([
+                'completion_date' => 'required|date|after:today'
+            ]);
+        } else {
+            // Если задача бессрочная, очищаем дату
+            $validated['completion_date'] = null;
+        }
+
+        // Удаляем indefinite_task из validated данных, так как это поле не существует в таблице
+        unset($validated['indefinite_task']);
 
         $task->update($validated);
 
