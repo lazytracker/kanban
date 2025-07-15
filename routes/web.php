@@ -5,6 +5,7 @@ use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OrganizationSyncController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserManagementController; // Добавьте эту строку
 
 // Публичные маршруты (для авторизации)
 require __DIR__.'/auth.php';
@@ -17,8 +18,9 @@ Route::middleware(['auth'])->group(function () {
     
     // Управление пользователями (только для админов)
     Route::middleware(['permission:manage-users'])->group(function () {
-        Route::get('/dashboard/users', [DashboardController::class, 'users'])->name('dashboard.users');
-        Route::patch('/dashboard/users/{user}/role', [DashboardController::class, 'updateUserRole'])->name('dashboard.users.update-role');
+        Route::get('/dashboard/users', [UserManagementController::class, 'index'])->name('dashboard.users');
+        Route::patch('/dashboard/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('dashboard.users.update-role');
+        Route::get('/dashboard/users/{user}/permissions', [UserManagementController::class, 'showPermissions'])->name('dashboard.users.permissions');
     });
     
     // Kanban - доступен всем авторизованным пользователям
