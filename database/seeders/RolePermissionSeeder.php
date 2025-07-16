@@ -31,18 +31,18 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Создаем роли
-        $adminRole = Role::create(['name' => 'admin']);
-        $editorRole = Role::create(['name' => 'editor']);
-        $userRole = Role::create(['name' => 'user']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $editorRole = Role::firstOrCreate(['name' => 'editor']);
+        $userRole = Role::firstOrCreate(['name' => 'user']);
 
-        // Назначаем права ролям
-        $adminRole->givePermissionTo(Permission::all());
+        // Назначаем права ролям (синхронизируем, чтобы убрать старые и добавить новые)
+        $adminRole->syncPermissions(Permission::all());
         
-        $editorRole->givePermissionTo([
+        $editorRole->syncPermissions([
             'view-kanban',
             'create-task',
             'edit-task',
@@ -56,7 +56,7 @@ class RolePermissionSeeder extends Seeder
             'view-dashboard',
         ]);
         
-        $userRole->givePermissionTo([
+        $userRole->syncPermissions([
             'view-kanban',
             'create-task',
             'edit-self-task',
@@ -66,11 +66,16 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Создаем админа (опционально)
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
-        ]);
-        $admin->assignRole('admin');
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => bcrypt('password'),
+            ]
+        );
+        
+        if (!$admin->hasRole('admin')) {
+            $admin->assignRole('admin');
+        }
     }
 }
