@@ -222,3 +222,118 @@
         .close:hover {
             color: black;
         }
+                .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            margin: 0;
+        }
+        
+        .permission-item label {
+            margin: 0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .permissions-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .permissions-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .permissions-header h4 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .btn-save-permissions {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-save-permissions:hover {
+            background: #218838;
+        }
+        
+        .user-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .role-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: #28a745;
+        }
+        
+        .toast.error {
+            background: #dc3545;
+        }
+        
+        .expanded-row {
+            background: #fff;
+        }
+        
+        .collapse-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .collapse-btn:hover {
+            background: #0056b3;
+        }

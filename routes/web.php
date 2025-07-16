@@ -5,7 +5,7 @@ use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OrganizationSyncController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UserManagementController; // Добавьте эту строку
+use App\Http\Controllers\UserManagementController;
 
 // Публичные маршруты (для авторизации)
 require __DIR__.'/auth.php';
@@ -20,6 +20,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:manage-users'])->group(function () {
         Route::get('/dashboard/users', [UserManagementController::class, 'index'])->name('dashboard.users');
         Route::patch('/dashboard/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('dashboard.users.update-role');
+        Route::patch('/dashboard/users/{user}/permissions', [UserManagementController::class, 'updatePermissions'])->name('dashboard.users.update-permissions');
         Route::get('/dashboard/users/{user}/permissions', [UserManagementController::class, 'showPermissions'])->name('dashboard.users.permissions');
     });
     
