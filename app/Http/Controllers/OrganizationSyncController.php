@@ -28,12 +28,22 @@ class OrganizationSyncController extends Controller
 
         try {
             Log::info('=== НАЧАЛО СИНХРОНИЗАЦИИ ОРГАНИЗАЦИЙ ===');
+            
+            $irbis_host = env('IRBIS_HOST', '127.0.0.1');
+            $irbis_port = env('IRBIS_PORT', 6666);
+            
             Log::info('Переменные окружения IRBIS:', [
-                'IRBIS_HOST' => env('IRBIS_HOST', '127.0.0.1'),
-                'IRBIS_PORT' => env('IRBIS_PORT', 6666),
+                'IRBIS_HOST' => $irbis_host,
+                'IRBIS_PORT' => $irbis_port,
                 'IRBIS_USERNAME' => env('IRBIS_USERNAME', '1'),
                 'IRBIS_DATABASE' => env('IRBIS_DATABASE', 'organization')
             ]);
+
+            // Быстрая проверка сетевого подключения
+            Log::info("Предварительная проверка сетевого подключения...");
+            $socket_check = $this->checkSocket($irbis_host, $irbis_port);
+            Log::info("Предварительная проверка сокета $irbis_host:$irbis_port: " . $socket_check['status'] . 
+                     ($socket_check['error'] ? " (ошибка: {$socket_check['error']})" : ''));
 
             // Проверяем файл IRBIS
             $irbis_file = base_path('irbis_class.inc');
@@ -60,8 +70,8 @@ class OrganizationSyncController extends Controller
             // Создаем экземпляр класса
             Log::info("Создание экземпляра класса irbis64...");
             $this->irbis = new \irbis64(
-                env('IRBIS_HOST', '127.0.0.1'),
-                env('IRBIS_PORT', 6666),
+                $irbis_host,
+                $irbis_port,
                 env('IRBIS_USERNAME', '1'),
                 env('IRBIS_PASSWORD', '1'),
                 env('IRBIS_DATABASE', 'organization')
@@ -70,8 +80,12 @@ class OrganizationSyncController extends Controller
 
             // Попытка подключения
             Log::info("Попытка подключения к IRBIS...");
+            $start_time = microtime(true);
             $login_result = $this->irbis->login();
+            $connection_time = round((microtime(true) - $start_time) * 1000, 2);
+            
             Log::info("Результат login(): " . ($login_result ? 'true' : 'false'));
+            Log::info("Время подключения: {$connection_time}мс");
             
             if (!$login_result) {
                 $error_msg = $this->irbis->error();
@@ -80,10 +94,15 @@ class OrganizationSyncController extends Controller
                 Log::error("Ошибка подключения к IRBIS:", [
                     'error_message' => $error_msg,
                     'error_code' => $error_code,
-                    'host' => env('IRBIS_HOST', '127.0.0.1'),
-                    'port' => env('IRBIS_PORT', 6666),
-                    'database' => env('IRBIS_DATABASE', 'organization')
+                    'host' => $irbis_host,
+                    'port' => $irbis_port,
+                    'database' => env('IRBIS_DATABASE', 'organization'),
+                    'connection_time_ms' => $connection_time
                 ]);
+                
+                // Дополнительная диагностика при ошибке
+                Log::info("Дополнительная сетевая диагностика при ошибке:");
+                $this->performNetworkDiagnostics($irbis_host, $irbis_port);
                 
                 throw new \Exception("Ошибка подключения к базе ИРБИС: " . $error_msg . " (код: $error_code)");
             }
@@ -436,6 +455,75 @@ class OrganizationSyncController extends Controller
         }
     }
 
+    private function pingHost($host)
+    {
+        $command = "ping -c 1 -W 3 " . escapeshellarg($host);
+        exec($command, $output, $return_code);
+        return $return_code === 0;
+    }
+
+    private function checkPort($host, $port)
+    {
+        $command = "nc -z -w3 " . escapeshellarg($host) . " " . escapeshellarg($port);
+        exec($command, $output, $return_code);
+        return $return_code === 0;
+    }
+
+    private function checkSocket($host, $port)
+    {
+        $errno = 0;
+        $errstr = '';
+        $timeout = 5;
+        
+        $socket = @fsockopen($host, $port, $errno, $errstr, $timeout);
+        
+        if ($socket) {
+            fclose($socket);
+            return ['status' => 'открыт', 'error' => null];
+        } else {
+            return ['status' => 'закрыт', 'error' => "$errno: $errstr"];
+        }
+    }
+
+    private function performNetworkDiagnostics($host, $port)
+    {
+        // Проверяем netstat для активных соединений
+        $netstat_command = "netstat -an | grep " . escapeshellarg($port);
+        exec($netstat_command, $netstat_output);
+        Log::info("Netstat для порта $port:", $netstat_output);
+        
+        // Проверяем telnet подключение
+        $telnet_command = "timeout 5 telnet " . escapeshellarg($host) . " " . escapeshellarg($port) . " 2>&1";
+        exec($telnet_command, $telnet_output);
+        Log::info("Telnet $host:$port:", $telnet_output);
+        
+        // Проверяем доступность через curl (если порт поддерживает HTTP)
+        if (function_exists('curl_init')) {
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, "http://$host:$port");
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 5);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+            curl_setopt($curl, CURLOPT_NOBODY, true);
+            
+            $result = curl_exec($curl);
+            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $error = curl_error($curl);
+            curl_close($curl);
+            
+            Log::info("Curl проверка $host:$port:", [
+                'http_code' => $http_code,
+                'error' => $error,
+                'result' => $result !== false ? 'успешно' : 'неудачно'
+            ]);
+        }
+        
+        // Проверяем маршрутизацию
+        $traceroute_command = "traceroute -m 5 " . escapeshellarg($host) . " 2>&1";
+        exec($traceroute_command, $traceroute_output);
+        Log::info("Traceroute до $host:", array_slice($traceroute_output, 0, 10)); // Только первые 10 строк
+    }
+
     public function testConnection()
     {
         try {
@@ -450,6 +538,30 @@ class OrganizationSyncController extends Controller
                 'loaded_extensions' => get_loaded_extensions()
             ]);
             
+            // Проверяем сетевое подключение
+            $irbis_host = env('IRBIS_HOST', '127.0.0.1');
+            $irbis_port = env('IRBIS_PORT', 6666);
+            
+            Log::info("Проверка сетевого подключения к IRBIS:", [
+                'host' => $irbis_host,
+                'port' => $irbis_port
+            ]);
+            
+            // Проверяем доступность хоста
+            if ($irbis_host !== '127.0.0.1' && $irbis_host !== 'localhost') {
+                $ping_result = $this->pingHost($irbis_host);
+                Log::info("Результат ping $irbis_host: " . ($ping_result ? 'доступен' : 'недоступен'));
+            }
+            
+            // Проверяем доступность порта
+            $port_check = $this->checkPort($irbis_host, $irbis_port);
+            Log::info("Проверка порта $irbis_host:$irbis_port: " . ($port_check ? 'открыт' : 'закрыт'));
+            
+            // Проверяем через fsockopen
+            $socket_check = $this->checkSocket($irbis_host, $irbis_port);
+            Log::info("Проверка сокета $irbis_host:$irbis_port: " . $socket_check['status'] . 
+                     ($socket_check['error'] ? " (ошибка: {$socket_check['error']})" : ''));
+            
             // Проверяем переменные окружения
             Log::info("Переменные окружения IRBIS:", [
                 'IRBIS_HOST' => env('IRBIS_HOST', 'не задан'),
@@ -459,6 +571,26 @@ class OrganizationSyncController extends Controller
                 'APP_ENV' => env('APP_ENV', 'не задан'),
                 'APP_DEBUG' => env('APP_DEBUG', 'не задан')
             ]);
+            
+            // Проверяем файл .env
+            $env_file = base_path('.env');
+            Log::info("Проверка файла .env:", [
+                'path' => $env_file,
+                'exists' => file_exists($env_file),
+                'readable' => file_exists($env_file) ? is_readable($env_file) : false
+            ]);
+            
+            // Проверяем значения напрямую из файла .env
+            if (file_exists($env_file)) {
+                $env_content = file_get_contents($env_file);
+                $irbis_lines = [];
+                foreach (explode("\n", $env_content) as $line) {
+                    if (strpos($line, 'IRBIS_') === 0) {
+                        $irbis_lines[] = $line;
+                    }
+                }
+                Log::info("IRBIS переменные из .env файла:", $irbis_lines);
+            }
             
             // Проверяем существование файла
             $irbis_file = base_path('irbis_class.inc');
@@ -502,8 +634,8 @@ class OrganizationSyncController extends Controller
             // Создаем подключение к ИРБИС
             Log::info("Создание экземпляра класса irbis64...");
             $irbis = new \irbis64(
-                env('IRBIS_HOST', '127.0.0.1'),
-                env('IRBIS_PORT', 6666),
+                $irbis_host,
+                $irbis_port,
                 env('IRBIS_USERNAME', '1'),
                 env('IRBIS_PASSWORD', '1'),
                 env('IRBIS_DATABASE', 'organization')
@@ -514,22 +646,49 @@ class OrganizationSyncController extends Controller
             $instance_methods = get_class_methods($irbis);
             Log::info("Методы экземпляра irbis64:", $instance_methods);
             
+            // Устанавливаем таймаут для подключения (если такой метод есть)
+            if (method_exists($irbis, 'setTimeout')) {
+                $irbis->setTimeout(10);
+                Log::info("Установлен таймаут подключения: 10 секунд");
+            }
+            
             // Попытка подключения
             Log::info("Попытка подключения к IRBIS...");
+            $start_time = microtime(true);
             $login_result = $irbis->login();
-            Log::info("Результат подключения: " . ($login_result ? 'успешно' : 'неудачно'));
+            $connection_time = round((microtime(true) - $start_time) * 1000, 2);
+            
+            Log::info("Результат подключения:", [
+                'success' => $login_result ? 'успешно' : 'неудачно',
+                'connection_time_ms' => $connection_time
+            ]);
             
             if (!$login_result) {
                 $error_msg = $irbis->error();
                 $error_code = method_exists($irbis, 'error_code') ? $irbis->error_code : 'неопределён';
                 
+                // Дополнительная информация об ошибке
+                $additional_info = [];
+                if (method_exists($irbis, 'getLastError')) {
+                    $additional_info['last_error'] = $irbis->getLastError();
+                }
+                if (method_exists($irbis, 'getConnectionInfo')) {
+                    $additional_info['connection_info'] = $irbis->getConnectionInfo();
+                }
+                
                 Log::error("Ошибка подключения к IRBIS:", [
                     'error_message' => $error_msg,
                     'error_code' => $error_code,
-                    'host' => env('IRBIS_HOST', '127.0.0.1'),
-                    'port' => env('IRBIS_PORT', 6666),
-                    'database' => env('IRBIS_DATABASE', 'organization')
+                    'host' => $irbis_host,
+                    'port' => $irbis_port,
+                    'database' => env('IRBIS_DATABASE', 'organization'),
+                    'connection_time_ms' => $connection_time,
+                    'additional_info' => $additional_info
                 ]);
+                
+                // Дополнительная диагностика
+                Log::info("Дополнительная сетевая диагностика:");
+                $this->performNetworkDiagnostics($irbis_host, $irbis_port);
                 
                 throw new \Exception("Ошибка подключения к ИРБИС: " . $error_msg . " (код: $error_code)");
             }
