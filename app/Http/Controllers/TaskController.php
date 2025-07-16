@@ -45,7 +45,10 @@ class TaskController extends Controller
         // Удаляем indefinite_task из validated данных, так как это поле не существует в таблице
         unset($validated['indefinite_task']);
 
-        $task = Task::create($validated);
+        $task = Task::create([
+            ...$validated,
+            'created_by' => auth()->id(),
+        ]);
 
         if ($request->has('assignees')) {
             $task->assignees()->attach($request->assignees);

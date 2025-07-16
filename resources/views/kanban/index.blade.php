@@ -33,10 +33,13 @@
                 
                 <div class="column-content" data-status="todo">
                     @foreach($tasks->get('todo', collect()) as $task)
-                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" @can('update-task-status') draggable="true" @endcan>
+                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" 
+                             @if(auth()->user()->can('update-task-status') || (auth()->user()->can('update-self-task-status') && $task->isCreatedBy(auth()->user()))) 
+                                 draggable="true" 
+                             @endif>
                             <div class="card-header">
                                 <span class="card-id">#{{ str_pad($task->id, 3, '0', STR_PAD_LEFT) }}</span>
-                                <span class="card-priority">{{ $task->priority }}</span>
+                                <span class="card-priority priority-{{ $task->priority_color }}">{{ $task->priority }}</span>
                             </div>
                             <h3 class="card-title">{{ $task->title }}</h3>
                             @if($task->description)
@@ -46,7 +49,6 @@
                                 <span class="card-date">{{ $task->completion_date->format('d.m.Y') }}</span>
                                 <div class="card-tags">
                                     <span class="tag tag-organization">{{ $task->organization->name }}</span>
-                                    <span class="tag tag-priority-{{ $task->priority_color }}">Priority {{ $task->priority }}</span>
                                 </div>
                             </div>
                             @if($task->assignees->count() > 0)
@@ -58,18 +60,31 @@
                                     @endforeach
                                 </div>
                             @endif
-                            @if(auth()->user()->can('edit-task') || auth()->user()->can('delete-task'))
+                            
+                            {{-- Иконка создателя в правом нижнем углу --}}
+                            @if($task->creator)
+                                <div class="creator-avatar" title="Создал: {{ $task->creator->name }}">
+                                    {{ $task->creator->initials }}
+                                </div>
+                            @endif
+                            
+                            @php
+                                $canEdit = auth()->user()->can('edit-task') || (auth()->user()->can('edit-self-task') && $task->isCreatedBy(auth()->user()));
+                                $canDelete = auth()->user()->can('delete-task') || (auth()->user()->can('delete-self-task') && $task->isCreatedBy(auth()->user()));
+                            @endphp
+                            
+                            @if($canEdit || $canDelete)
                                 <div class="card-actions">
-                                    @can('edit-task')
+                                    @if($canEdit)
                                         <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-edit">Изменить</a>
-                                    @endcan
-                                    @can('delete-task')
+                                    @endif
+                                    @if($canDelete)
                                         <form method="POST" action="{{ route('tasks.destroy', $task) }}" style="display: inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-delete" onclick="return confirm('Удалить задачу?')">Удалить</button>
                                         </form>
-                                    @endcan
+                                    @endif
                                 </div>
                             @endif
                         </div>
@@ -86,10 +101,13 @@
                 
                 <div class="column-content" data-status="in_progress">
                     @foreach($tasks->get('in_progress', collect()) as $task)
-                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" @can('update-task-status') draggable="true" @endcan>
+                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" 
+                             @if(auth()->user()->can('update-task-status') || (auth()->user()->can('update-self-task-status') && $task->isCreatedBy(auth()->user()))) 
+                                 draggable="true" 
+                             @endif>
                             <div class="card-header">
                                 <span class="card-id">#{{ str_pad($task->id, 3, '0', STR_PAD_LEFT) }}</span>
-                                <span class="card-priority">{{ $task->priority }}</span>
+                                <span class="card-priority priority-{{ $task->priority_color }}">{{ $task->priority }}</span>
                             </div>
                             <h3 class="card-title">{{ $task->title }}</h3>
                             @if($task->description)
@@ -99,7 +117,6 @@
                                 <span class="card-date">{{ $task->completion_date->format('d.m.Y') }}</span>
                                 <div class="card-tags">
                                     <span class="tag tag-organization">{{ $task->organization->name }}</span>
-                                    <span class="tag tag-priority-{{ $task->priority_color }}">Priority {{ $task->priority }}</span>
                                 </div>
                             </div>
                             @if($task->assignees->count() > 0)
@@ -111,18 +128,31 @@
                                     @endforeach
                                 </div>
                             @endif
-                            @if(auth()->user()->can('edit-task') || auth()->user()->can('delete-task'))
+                            
+                            {{-- Иконка создателя в правом нижнем углу --}}
+                            @if($task->creator)
+                                <div class="creator-avatar" title="Создал: {{ $task->creator->name }}">
+                                    {{ $task->creator->initials }}
+                                </div>
+                            @endif
+                            
+                            @php
+                                $canEdit = auth()->user()->can('edit-task') || (auth()->user()->can('edit-self-task') && $task->isCreatedBy(auth()->user()));
+                                $canDelete = auth()->user()->can('delete-task') || (auth()->user()->can('delete-self-task') && $task->isCreatedBy(auth()->user()));
+                            @endphp
+                            
+                            @if($canEdit || $canDelete)
                                 <div class="card-actions">
-                                    @can('edit-task')
+                                    @if($canEdit)
                                         <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-edit">Изменить</a>
-                                    @endcan
-                                    @can('delete-task')
+                                    @endif
+                                    @if($canDelete)
                                         <form method="POST" action="{{ route('tasks.destroy', $task) }}" style="display: inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-delete" onclick="return confirm('Удалить задачу?')">Удалить</button>
                                         </form>
-                                    @endcan
+                                    @endif
                                 </div>
                             @endif
                         </div>
@@ -139,10 +169,13 @@
                 
                 <div class="column-content" data-status="done">
                     @foreach($tasks->get('done', collect()) as $task)
-                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" @can('update-task-status') draggable="true" @endcan>
+                        <div class="kanban-card" data-priority="{{ $task->priority }}" data-task-id="{{ $task->id }}" 
+                             @if(auth()->user()->can('update-task-status') || (auth()->user()->can('update-self-task-status') && $task->isCreatedBy(auth()->user()))) 
+                                 draggable="true" 
+                             @endif>
                             <div class="card-header">
                                 <span class="card-id">#{{ str_pad($task->id, 3, '0', STR_PAD_LEFT) }}</span>
-                                <span class="card-priority">{{ $task->priority }}</span>
+                                <span class="card-priority priority-{{ $task->priority_color }}">{{ $task->priority }}</span>
                             </div>
                             <h3 class="card-title">{{ $task->title }}</h3>
                             @if($task->description)
@@ -152,7 +185,6 @@
                                 <span class="card-date">{{ $task->completion_date->format('d.m.Y') }}</span>
                                 <div class="card-tags">
                                     <span class="tag tag-organization">{{ $task->organization->name }}</span>
-                                    <span class="tag tag-priority-{{ $task->priority_color }}">Priority {{ $task->priority }}</span>
                                 </div>
                             </div>
                             @if($task->assignees->count() > 0)
@@ -164,18 +196,31 @@
                                     @endforeach
                                 </div>
                             @endif
-                            @if(auth()->user()->can('edit-task') || auth()->user()->can('delete-task'))
+                            
+                            {{-- Иконка создателя в правом нижнем углу --}}
+                            @if($task->creator)
+                                <div class="creator-avatar" title="Создал: {{ $task->creator->name }}">
+                                    {{ $task->creator->initials }}
+                                </div>
+                            @endif
+                            
+                            @php
+                                $canEdit = auth()->user()->can('edit-task') || (auth()->user()->can('edit-self-task') && $task->isCreatedBy(auth()->user()));
+                                $canDelete = auth()->user()->can('delete-task') || (auth()->user()->can('delete-self-task') && $task->isCreatedBy(auth()->user()));
+                            @endphp
+                            
+                            @if($canEdit || $canDelete)
                                 <div class="card-actions">
-                                    @can('edit-task')
+                                    @if($canEdit)
                                         <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-edit">Изменить</a>
-                                    @endcan
-                                    @can('delete-task')
+                                    @endif
+                                    @if($canDelete)
                                         <form method="POST" action="{{ route('tasks.destroy', $task) }}" style="display: inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-delete" onclick="return confirm('Удалить задачу?')">Удалить</button>
                                         </form>
-                                    @endcan
+                                    @endif
                                 </div>
                             @endif
                         </div>

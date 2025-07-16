@@ -16,7 +16,8 @@ class Task extends Model
         'description',
         'completion_date',
         'priority',
-        'status'
+        'status',
+        'created_by'
     ];
 
     protected $casts = [
@@ -34,6 +35,11 @@ class Task extends Model
         return $this->belongsToMany(User::class);
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function getPriorityColorAttribute()
     {
         return match(true) {
@@ -42,5 +48,10 @@ class Task extends Model
             $this->priority >= 4 => 'medium',
             default => 'low'
         };
+    }
+
+    public function isCreatedBy($user)
+    {
+        return $this->created_by === $user->id;
     }
 }

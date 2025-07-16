@@ -22,7 +22,7 @@ class KanbanController extends Controller
         $user->refresh();
         $user->load('permissions', 'roles.permissions');
         
-        $tasks = Task::with(['organization', 'assignees'])
+        $tasks = Task::with(['organization', 'assignees', 'creator'])
             ->orderBy('priority', 'desc')
             ->orderBy('completion_date', 'asc')
             ->get()
@@ -38,6 +38,9 @@ class KanbanController extends Controller
             'canDeleteTask' => $user->can('delete-task'),
             'canUpdateTaskStatus' => $user->can('update-task-status'),
             'canViewKanban' => $user->can('view-kanban'),
+            'canEditSelfTask' => $user->can('edit-self-task'),
+            'canDeleteSelfTask' => $user->can('delete-self-task'),
+            'canUpdateSelfTaskStatus' => $user->can('update-self-task-status'),
         ];
 
         // Логируем актуальные разрешения для отладки
@@ -53,8 +56,13 @@ class KanbanController extends Controller
 
     public function updateStatus(Request $request, Task $task): JsonResponse
     {
+        $user = auth()->user();
+        
         // Проверяем разрешение перед обновлением
-        if (!auth()->user()->can('update-task-status')) {
+        $canUpdate = $user->can('update-task-status') || 
+                    ($user->can('update-self-task-status') && $task->isCreatedBy($user));
+        
+        if (!$canUpdate) {
             return response()->json([
                 'success' => false,
                 'message' => 'У вас нет прав для изменения статуса задач'

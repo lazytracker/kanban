@@ -1,8 +1,8 @@
 <?php
+// app/Models/User.php
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,47 +12,43 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
-    /**
-     * Boot the model.
-     */
-    protected static function boot()
+    public function tasks()
     {
-        parent::boot();
+        return $this->belongsToMany(Task::class);
+    }
 
-        static::created(function ($user) {
-            // Назначаем роль 'user' всем новым пользователям по умолчанию
-            $user->assignRole('user');
-        });
+    public function createdTasks()
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    public function getInitialsAttribute()
+    {
+        $words = explode(' ', $this->name);
+        $initials = '';
+        
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= mb_strtoupper(mb_substr($word, 0, 1));
+            }
+        }
+        
+        return $initials ?: mb_strtoupper(mb_substr($this->name, 0, 2));
     }
 }
