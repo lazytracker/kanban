@@ -30,7 +30,13 @@ class OrganizationSyncController extends Controller
             // Подключаем IRBIS класс
             require_once base_path('irbis_class.inc');
 
-            $this->irbis = new \irbis64('127.0.0.1', 6666, '1', '1', 'organization');
+            $this->irbis = new \irbis64(
+                env('IRBIS_HOST', '127.0.0.1'),
+                env('IRBIS_PORT', 6666),
+                env('IRBIS_USERNAME', '1'),
+                env('IRBIS_PASSWORD', '1'),
+                env('IRBIS_DATABASE', 'organization')
+            );
 
             if (!$this->irbis->login()) {
                 throw new \Exception("Ошибка подключения к базе ИРБИС: " . $this->irbis->error());
@@ -279,7 +285,13 @@ class OrganizationSyncController extends Controller
             }
             
             // Создаем подключение к ИРБИС
-            $irbis = new \irbis64('127.0.0.1', 6666, '1', '1', 'organization');
+            $irbis = new \irbis64(
+                env('IRBIS_HOST', '127.0.0.1'),
+                env('IRBIS_PORT', 6666),
+                env('IRBIS_USERNAME', '1'),
+                env('IRBIS_PASSWORD', '1'),
+                env('IRBIS_DATABASE', 'organization')
+            );
             
             if (!$irbis->login()) {
                 throw new \Exception("Ошибка подключения к ИРБИС: " . $irbis->error());
