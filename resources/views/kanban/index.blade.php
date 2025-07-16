@@ -51,20 +51,22 @@
                                     <span class="tag tag-organization">{{ $task->organization->name }}</span>
                                 </div>
                             </div>
-                            @if($task->assignees->count() > 0)
+                            @if($task->assignees->count() > 0 || $task->creator)
                                 <div class="card-assignees">
-                                    @foreach($task->assignees as $assignee)
-                                        <div class="assignee-avatar" title="{{ $assignee->name }}">
-                                            {{ $assignee->initials }}
+                                    <div class="assignees-left">
+                                        @foreach($task->assignees as $assignee)
+                                            <div class="assignee-avatar" title="{{ $assignee->name }}">
+                                                {{ $assignee->initials }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @if($task->creator)
+                                        <div class="assignees-right">
+                                            <div class="assignee-avatar creator-avatar" title="Создал: {{ $task->creator->name }}">
+                                                {{ $task->creator->initials }}
+                                            </div>
                                         </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                            
-                            {{-- Иконка создателя в правом нижнем углу --}}
-                            @if($task->creator)
-                                <div class="creator-avatar" title="Создал: {{ $task->creator->name }}">
-                                    {{ $task->creator->initials }}
+                                    @endif
                                 </div>
                             @endif
                             
@@ -119,20 +121,22 @@
                                     <span class="tag tag-organization">{{ $task->organization->name }}</span>
                                 </div>
                             </div>
-                            @if($task->assignees->count() > 0)
+                            @if($task->assignees->count() > 0 || $task->creator)
                                 <div class="card-assignees">
-                                    @foreach($task->assignees as $assignee)
-                                        <div class="assignee-avatar" title="{{ $assignee->name }}">
-                                            {{ $assignee->initials }}
+                                    <div class="assignees-left">
+                                        @foreach($task->assignees as $assignee)
+                                            <div class="assignee-avatar" title="{{ $assignee->name }}">
+                                                {{ $assignee->initials }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @if($task->creator)
+                                        <div class="assignees-right">
+                                            <div class="assignee-avatar creator-avatar" title="Создал: {{ $task->creator->name }}">
+                                                {{ $task->creator->initials }}
+                                            </div>
                                         </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                            
-                            {{-- Иконка создателя в правом нижнем углу --}}
-                            @if($task->creator)
-                                <div class="creator-avatar" title="Создал: {{ $task->creator->name }}">
-                                    {{ $task->creator->initials }}
+                                    @endif
                                 </div>
                             @endif
                             
@@ -187,20 +191,22 @@
                                     <span class="tag tag-organization">{{ $task->organization->name }}</span>
                                 </div>
                             </div>
-                            @if($task->assignees->count() > 0)
+                            @if($task->assignees->count() > 0 || $task->creator)
                                 <div class="card-assignees">
-                                    @foreach($task->assignees as $assignee)
-                                        <div class="assignee-avatar" title="{{ $assignee->name }}">
-                                            {{ $assignee->initials }}
+                                    <div class="assignees-left">
+                                        @foreach($task->assignees as $assignee)
+                                            <div class="assignee-avatar" title="{{ $assignee->name }}">
+                                                {{ $assignee->initials }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @if($task->creator)
+                                        <div class="assignees-right">
+                                            <div class="assignee-avatar creator-avatar" title="Создал: {{ $task->creator->name }}">
+                                                {{ $task->creator->initials }}
+                                            </div>
                                         </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                            
-                            {{-- Иконка создателя в правом нижнем углу --}}
-                            @if($task->creator)
-                                <div class="creator-avatar" title="Создал: {{ $task->creator->name }}">
-                                    {{ $task->creator->initials }}
+                                    @endif
                                 </div>
                             @endif
                             

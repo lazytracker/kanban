@@ -1111,3 +1111,66 @@ body {
     min-height: 500px;
     transition: all 0.2s ease;
 }        
+/* Стили для блока с назначенными и создателем */
+.card-assignees {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.assignees-left {
+    display: flex;
+    gap: 4px;
+}
+
+.assignees-right {
+    display: flex;
+}
+
+.creator-avatar {
+    border: 2px solid #6c757d !important;
+    background: #6c757d !important;
+    opacity: 0.8;
+}
+
+/* Обновленные стили для приоритета */
+.card-priority {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.priority-critical { 
+    background: #dc3545; 
+    color: white; 
+}
+
+.priority-high { 
+    background: #fd7e14; 
+    color: white; 
+}
+
+.priority-medium { 
+    background: #ffc107; 
+    color: black; 
+}
+
+.priority-low { 
+    background: #28a745; 
+    color: white; 
+}
+
+/* Позиционирование для карточки */
+.kanban-card {
+    position: relative;
+}
+
+/* Убираем старые стили тегов приоритета */
+.tag-priority-critical,
+.tag-priority-high,
+.tag-priority-medium,
+.tag-priority-low {
+    display: none;
+}
