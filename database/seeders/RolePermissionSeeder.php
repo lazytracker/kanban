@@ -21,6 +21,9 @@ class RolePermissionSeeder extends Seeder
             'edit-task',
             'delete-task',
             'update-task-status',
+            'edit-self-task',
+            'delete-self-task',
+            'update-self-task-status',
             'view-org-sync',
             'use-org-sync',
             'manage-users',
@@ -45,6 +48,9 @@ class RolePermissionSeeder extends Seeder
             'edit-task',
             'delete-task',
             'update-task-status',
+            'edit-self-task',
+            'delete-self-task',
+            'update-self-task-status',
             'view-org-sync',
             'use-org-sync',
             'view-dashboard',
@@ -53,8 +59,9 @@ class RolePermissionSeeder extends Seeder
         $userRole->givePermissionTo([
             'view-kanban',
             'create-task',
-            'edit-task',
-            'update-task-status',
+            'edit-self-task',
+            'delete-self-task',
+            'update-self-task-status',
             'view-dashboard',
         ]);
 

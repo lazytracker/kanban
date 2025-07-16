@@ -1,14 +1,21 @@
-        // Drag and Drop functionality
+// Drag and Drop functionality
 // Обновленная часть JavaScript для правильной сортировки по приоритету
 
 class KanbanDragDrop {
     constructor() {
         this.draggedElement = null;
         this.draggedTaskId = null;
+        this.userPermissions = window.userPermissions || {};
         this.init();
     }
 
     init() {
+        // Проверяем права пользователя перед инициализацией
+        if (!this.userPermissions.canUpdateTaskStatus) {
+            console.log('User does not have permission to update task status');
+            return;
+        }
+        
         this.setupEventListeners();
         this.setupCSRFToken();
     }
@@ -24,21 +31,31 @@ class KanbanDragDrop {
     }
 
     setupEventListeners() {
-        document.querySelectorAll('.kanban-card').forEach(card => {
+        // Только добавляем обработчики drag для карточек, которые имеют draggable="true"
+        document.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
             card.addEventListener('dragstart', this.handleDragStart.bind(this));
             card.addEventListener('dragend', this.handleDragEnd.bind(this));
         });
 
-        // Добавляем обработчики на всю колонку (включая заголовок)
-        document.querySelectorAll('.kanban-column').forEach(column => {
-            column.addEventListener('dragover', this.handleDragOver.bind(this));
-            column.addEventListener('drop', this.handleDrop.bind(this));
-            column.addEventListener('dragenter', this.handleDragEnter.bind(this));
-            column.addEventListener('dragleave', this.handleDragLeave.bind(this));
-        });
+        // Добавляем обработчики на всю колонку (включая заголовок) только если есть права
+        if (this.userPermissions.canUpdateTaskStatus) {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                column.addEventListener('dragover', this.handleDragOver.bind(this));
+                column.addEventListener('drop', this.handleDrop.bind(this));
+                column.addEventListener('dragenter', this.handleDragEnter.bind(this));
+                column.addEventListener('dragleave', this.handleDragLeave.bind(this));
+            });
+        }
     }
 
     handleDragStart(e) {
+        // Дополнительная проверка прав при начале перетаскивания
+        if (!this.userPermissions.canUpdateTaskStatus) {
+            e.preventDefault();
+            this.showToast('У вас нет прав для изменения статуса задач', 'error');
+            return;
+        }
+
         this.draggedElement = e.target;
         this.draggedTaskId = e.target.dataset.taskId;
         e.target.classList.add('dragging');
@@ -62,6 +79,11 @@ class KanbanDragDrop {
     }
 
     handleDragOver(e) {
+        // Проверяем права перед разрешением drop
+        if (!this.userPermissions.canUpdateTaskStatus) {
+            return;
+        }
+
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         
@@ -71,17 +93,32 @@ class KanbanDragDrop {
     }
 
     handleDragEnter(e) {
+        if (!this.userPermissions.canUpdateTaskStatus) {
+            return;
+        }
+
         e.preventDefault();
         e.currentTarget.classList.add('drag-over');
     }
 
     handleDragLeave(e) {
+        if (!this.userPermissions.canUpdateTaskStatus) {
+            return;
+        }
+
         if (!e.currentTarget.contains(e.relatedTarget)) {
             e.currentTarget.classList.remove('drag-over');
         }
     }
 
     handleDrop(e) {
+        // Проверяем права перед обработкой drop
+        if (!this.userPermissions.canUpdateTaskStatus) {
+            e.preventDefault();
+            this.showToast('У вас нет прав для изменения статуса задач', 'error');
+            return;
+        }
+
         e.preventDefault();
         const column = e.currentTarget;
         const newStatus = column.dataset.status;
@@ -108,12 +145,20 @@ class KanbanDragDrop {
                         // Показываем уведомление об успехе
                         this.showToast('Задача успешно перемещена', 'success');
                     } else {
-                        this.showToast('Ошибка при перемещении задачи', 'error');
+                        this.showToast(response.message || 'Ошибка при перемещении задачи', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error updating task status:', error);
-                    this.showToast('Ошибка при перемещении задачи', 'error');
+                    
+                    // Обработка разных типов ошибок
+                    if (error.message.includes('403')) {
+                        this.showToast('У вас нет прав для изменения статуса задач', 'error');
+                    } else if (error.message.includes('422')) {
+                        this.showToast('Неверные данные для обновления задачи', 'error');
+                    } else {
+                        this.showToast('Ошибка при перемещении задачи', 'error');
+                    }
                 });
         }
     }
@@ -163,8 +208,6 @@ class KanbanDragDrop {
         }
     }
 
-    // Удаляем метод getDragAfterElement так как он больше не нужен
-
     async updateTaskStatus(taskId, newStatus) {
         try {
             console.log('Updating task:', taskId, 'to status:', newStatus);
@@ -209,10 +252,23 @@ class KanbanDragDrop {
         });
     }
 
-    showToast(message, type) {
+    showToast(message, type = 'info') {
+        // Удаляем существующие toast сообщения
+        document.querySelectorAll('.toast').forEach(toast => {
+            toast.remove();
+        });
+
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-message">${message}</span>
+                <button class="toast-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        // Добавляем стили для toast, если их еще нет
+        this.addToastStyles();
         
         document.body.appendChild(toast);
         
@@ -221,15 +277,96 @@ class KanbanDragDrop {
         }, 100);
         
         setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 300);
-        }, 3000);
+            if (toast.parentElement) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }
+
+    addToastStyles() {
+        if (document.getElementById('toast-styles')) {
+            return;
+        }
+
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                max-width: 400px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .toast.show {
+                transform: translateX(0);
+            }
+            
+            .toast-content {
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .toast-success {
+                border-left: 4px solid #10b981;
+            }
+            
+            .toast-error {
+                border-left: 4px solid #ef4444;
+            }
+            
+            .toast-info {
+                border-left: 4px solid #3b82f6;
+            }
+            
+            .toast-message {
+                flex: 1;
+                margin-right: 12px;
+            }
+            
+            .toast-close {
+                background: none;
+                border: none;
+                font-size: 18px;
+                cursor: pointer;
+                color: #6b7280;
+                padding: 0;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .toast-close:hover {
+                color: #374151;
+            }
+        `;
+        
+        document.head.appendChild(style);
     }
 }
 
 // Инициализируем drag and drop когда DOM загружен
 document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем, что права пользователя загружены
+    if (typeof window.userPermissions === 'undefined') {
+        console.warn('User permissions not found. Drag and drop will be disabled.');
+        window.userPermissions = {};
+    }
+    
     new KanbanDragDrop();
 });

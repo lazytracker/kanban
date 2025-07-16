@@ -8,11 +8,20 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Spatie\Permission\PermissionRegistrar;
 
 class KanbanController extends Controller
 {
     public function index()
     {
+        // Принудительно обновляем кеш разрешений для текущего пользователя
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        
+        // Или можно перезагрузить пользователя с разрешениями
+        $user = auth()->user();
+        $user->refresh();
+        $user->load('permissions', 'roles.permissions');
+        
         $tasks = Task::with(['organization', 'assignees'])
             ->orderBy('priority', 'desc')
             ->orderBy('completion_date', 'asc')
@@ -22,11 +31,36 @@ class KanbanController extends Controller
         $organizations = Organization::all();
         $users = User::all();
 
-        return view('kanban.index', compact('tasks', 'organizations', 'users'));
+        // Передаем права пользователя в представление
+        $userPermissions = [
+            'canCreateTask' => $user->can('create-task'),
+            'canEditTask' => $user->can('edit-task'),
+            'canDeleteTask' => $user->can('delete-task'),
+            'canUpdateTaskStatus' => $user->can('update-task-status'),
+            'canViewKanban' => $user->can('view-kanban'),
+        ];
+
+        // Логируем актуальные разрешения для отладки
+        \Log::info('User permissions check', [
+            'user_id' => $user->id,
+            'permissions' => $userPermissions,
+            'all_permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+            'roles' => $user->getRoleNames()->toArray()
+        ]);
+
+        return view('kanban.index', compact('tasks', 'organizations', 'users', 'userPermissions'));
     }
 
     public function updateStatus(Request $request, Task $task): JsonResponse
     {
+        // Проверяем разрешение перед обновлением
+        if (!auth()->user()->can('update-task-status')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'У вас нет прав для изменения статуса задач'
+            ], 403);
+        }
+
         try {
             $validated = $request->validate([
                 'status' => 'required|in:todo,in_progress,done'
