@@ -38,11 +38,11 @@ class TaskController extends Controller
                 'completion_date' => 'required|date|after:today'
             ]);
         } else {
-            // Если задача бессрочная, очищаем дату
-            $validated['completion_date'] = null;
+            // Если задача бессрочная, удаляем поле completion_date полностью
+            unset($validated['completion_date']);
         }
 
-        // Удаляем indefinite_task из validated данных, так как это поле не существует в таблице
+        // Удаляем indefinite_task из validated данных
         unset($validated['indefinite_task']);
 
         $task = Task::create([
@@ -86,11 +86,11 @@ class TaskController extends Controller
                 'completion_date' => 'required|date|after:today'
             ]);
         } else {
-            // Если задача бессрочная, очищаем дату
-            $validated['completion_date'] = null;
+            // Если задача бессрочная, удаляем поле completion_date полностью
+            unset($validated['completion_date']);
         }
 
-        // Удаляем indefinite_task из validated данных, так как это поле не существует в таблице
+        // Удаляем indefinite_task из validated данных
         unset($validated['indefinite_task']);
 
         $task->update($validated);
