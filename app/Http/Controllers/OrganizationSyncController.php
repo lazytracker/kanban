@@ -259,73 +259,252 @@ class OrganizationSyncController extends Controller
         }
     }
 
-    public function testConnection()
-    {
-        try {
-            // Проверяем существование файла
-            $irbis_file = base_path('irbis_class.inc');
-            if (!file_exists($irbis_file)) {
-                throw new \Exception("Файл irbis_class.inc не найден по пути: " . $irbis_file);
+public function testConnection()
+{
+    $logContext = ['method' => 'testConnection', 'step' => 'start'];
+    
+    try {
+        Log::info('=== НАЧАЛО ТЕСТИРОВАНИЯ ПОДКЛЮЧЕНИЯ ===', $logContext);
+        
+        // 1. Проверяем переменные окружения
+        $logContext['step'] = 'env_check';
+        Log::info('Проверка переменных окружения:', $logContext);
+        
+        $env_vars = [
+            'IRBIS_HOST' => env('IRBIS_HOST'),
+            'IRBIS_PORT' => env('IRBIS_PORT'),
+            'IRBIS_USERNAME' => env('IRBIS_USERNAME'),
+            'IRBIS_PASSWORD' => env('IRBIS_PASSWORD') ? '[СКРЫТО]' : null,
+            'IRBIS_DATABASE' => env('IRBIS_DATABASE'),
+        ];
+        
+        foreach ($env_vars as $key => $value) {
+            if ($value === null) {
+                Log::error("Переменная окружения $key не установлена!", $logContext);
+            } else {
+                Log::info("$key = $value", $logContext);
             }
-            
-            // Проверяем MySQL подключение
-            try {
-                $orgs_count = DB::table('organizations')->count();
-                Log::info("MySQL подключение успешно, организаций: " . $orgs_count);
-            } catch (\Exception $e) {
-                throw new \Exception("Ошибка подключения к MySQL: " . $e->getMessage());
-            }
-            
-            // Подключаем библиотеку ИРБИС
-            require_once $irbis_file;
-            
-            // Проверяем существование класса
-            if (!class_exists('irbis64')) {
-                throw new \Exception("Класс irbis64 не найден в файле irbis_class.inc");
-            }
-            
-            // Создаем подключение к ИРБИС
-            $irbis = new \irbis64(
-                env('IRBIS_HOST', '127.0.0.1'),
-                env('IRBIS_PORT', 6666),
-                env('IRBIS_USERNAME', '1'),
-                env('IRBIS_PASSWORD', '1'),
-                env('IRBIS_DATABASE', 'organization')
-            );
-            
-            if (!$irbis->login()) {
-                throw new \Exception("Ошибка подключения к ИРБИС: " . $irbis->error());
-            }
-            
-            $max_mfn = $irbis->mfn_max();
-            $irbis->logout();
-            
-            return response()->json([
-                'success' => true,
-                'irbis_connected' => true,
-                'irbis_max_mfn' => $max_mfn,
-                'mysql_connected' => true,
-                'organizations_count' => $orgs_count
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Ошибка тестирования подключения: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        } catch (\Error $e) {
-            Log::error('Фатальная ошибка тестирования: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'error' => 'Фатальная ошибка: ' . $e->getMessage()
-            ], 500);
-        } catch (\Throwable $e) {
-            Log::error('Непредвиденная ошибка: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'error' => 'Непредвиденная ошибка: ' . $e->getMessage()
-            ], 500);
         }
+        
+        // Проверяем наличие .env файла
+        $env_file = base_path('.env');
+        Log::info("Путь к .env файлу: $env_file", $logContext);
+        Log::info("Файл .env существует: " . (file_exists($env_file) ? 'ДА' : 'НЕТ'), $logContext);
+        
+        if (file_exists($env_file)) {
+            Log::info("Размер .env файла: " . filesize($env_file) . " байт", $logContext);
+            Log::info("Права на .env файл: " . substr(sprintf('%o', fileperms($env_file)), -4), $logContext);
+        }
+        
+        // 2. Проверяем существование файла IRBIS
+        $logContext['step'] = 'irbis_file_check';
+        Log::info('Проверка файла IRBIS:', $logContext);
+        
+        $irbis_file = base_path('irbis_class.inc');
+        Log::info("Путь к файлу IRBIS: $irbis_file", $logContext);
+        Log::info("Файл IRBIS существует: " . (file_exists($irbis_file) ? 'ДА' : 'НЕТ'), $logContext);
+        
+        if (!file_exists($irbis_file)) {
+            // Проверяем альтернативные пути
+            $alternative_paths = [
+                base_path('app/irbis_class.inc'),
+                base_path('resources/irbis_class.inc'),
+                base_path('storage/irbis_class.inc'),
+            ];
+            
+            foreach ($alternative_paths as $alt_path) {
+                Log::info("Проверка альтернативного пути: $alt_path - " . (file_exists($alt_path) ? 'НАЙДЕН' : 'НЕ НАЙДЕН'), $logContext);
+            }
+            
+            throw new \Exception("Файл irbis_class.inc не найден по пути: " . $irbis_file);
+        }
+        
+        Log::info("Размер файла IRBIS: " . filesize($irbis_file) . " байт", $logContext);
+        Log::info("Права на файл IRBIS: " . substr(sprintf('%o', fileperms($irbis_file)), -4), $logContext);
+        
+        // 3. Проверяем MySQL подключение
+        $logContext['step'] = 'mysql_check';
+        Log::info('Проверка MySQL подключения:', $logContext);
+        
+        try {
+            $orgs_count = DB::table('organizations')->count();
+            Log::info("MySQL подключение успешно, организаций: " . $orgs_count, $logContext);
+        } catch (\Exception $e) {
+            Log::error("Ошибка подключения к MySQL: " . $e->getMessage(), $logContext);
+            throw new \Exception("Ошибка подключения к MySQL: " . $e->getMessage());
+        }
+        
+        // 4. Подключаем библиотеку ИРБИС
+        $logContext['step'] = 'irbis_include';
+        Log::info('Подключение библиотеки IRBIS:', $logContext);
+        
+        try {
+            require_once $irbis_file;
+            Log::info("Файл irbis_class.inc успешно подключен", $logContext);
+        } catch (\Exception $e) {
+            Log::error("Ошибка подключения файла IRBIS: " . $e->getMessage(), $logContext);
+            throw new \Exception("Ошибка подключения файла IRBIS: " . $e->getMessage());
+        }
+        
+        // 5. Проверяем существование класса
+        $logContext['step'] = 'class_check';
+        Log::info('Проверка класса irbis64:', $logContext);
+        
+        if (!class_exists('irbis64')) {
+            Log::error("Класс irbis64 не найден в файле irbis_class.inc", $logContext);
+            
+            // Попробуем получить список всех определенных классов
+            $defined_classes = get_declared_classes();
+            $irbis_classes = array_filter($defined_classes, function($class) {
+                return stripos($class, 'irbis') !== false;
+            });
+            
+            if (!empty($irbis_classes)) {
+                Log::info("Найдены IRBIS-подобные классы: " . implode(', ', $irbis_classes), $logContext);
+            } else {
+                Log::info("IRBIS-подобные классы не найдены", $logContext);
+            }
+            
+            throw new \Exception("Класс irbis64 не найден в файле irbis_class.inc");
+        }
+        
+        Log::info("Класс irbis64 найден успешно", $logContext);
+        
+        // 6. Создаем подключение к ИРБИС
+        $logContext['step'] = 'irbis_connection';
+        Log::info('Создание подключения к ИРБИС:', $logContext);
+        
+        $irbis_host = env('IRBIS_HOST', '127.0.0.1');
+        $irbis_port = env('IRBIS_PORT', 6666);
+        $irbis_username = env('IRBIS_USERNAME', '1');
+        $irbis_password = env('IRBIS_PASSWORD', '1');
+        $irbis_database = env('IRBIS_DATABASE', 'organization');
+        
+        Log::info("Параметры подключения IRBIS:", array_merge($logContext, [
+            'host' => $irbis_host,
+            'port' => $irbis_port,
+            'username' => $irbis_username,
+            'password' => '[СКРЫТО]',
+            'database' => $irbis_database
+        ]));
+        
+        // Проверяем доступность хоста
+        $logContext['step'] = 'network_check';
+        Log::info('Проверка сетевого подключения:', $logContext);
+        
+        $connection = @fsockopen($irbis_host, $irbis_port, $errno, $errstr, 5);
+        if (!$connection) {
+            Log::error("Не удается подключиться к $irbis_host:$irbis_port - $errno: $errstr", $logContext);
+            throw new \Exception("Не удается подключиться к серверу IRBIS ($irbis_host:$irbis_port): $errstr");
+        } else {
+            Log::info("Сетевое подключение к $irbis_host:$irbis_port успешно", $logContext);
+            fclose($connection);
+        }
+        
+        // 7. Инициализация объекта IRBIS
+        $logContext['step'] = 'irbis_init';
+        Log::info('Инициализация объекта IRBIS:', $logContext);
+        
+        try {
+            $irbis = new \irbis64($irbis_host, $irbis_port, $irbis_username, $irbis_password, $irbis_database);
+            Log::info("Объект irbis64 создан успешно", $logContext);
+        } catch (\Exception $e) {
+            Log::error("Ошибка создания объекта irbis64: " . $e->getMessage(), $logContext);
+            throw new \Exception("Ошибка создания объекта irbis64: " . $e->getMessage());
+        }
+        
+        // 8. Попытка входа в систему
+        $logContext['step'] = 'irbis_login';
+        Log::info('Попытка входа в ИРБИС:', $logContext);
+        
+        $login_result = $irbis->login();
+        Log::info("Результат входа в ИРБИС: " . ($login_result ? 'УСПЕШНО' : 'НЕУДАЧНО'), $logContext);
+        
+        if (!$login_result) {
+            $error_msg = $irbis->error();
+            Log::error("Ошибка входа в ИРБИС: " . $error_msg, $logContext);
+            throw new \Exception("Ошибка подключения к ИРБИС: " . $error_msg);
+        }
+        
+        // 9. Получение максимального MFN
+        $logContext['step'] = 'irbis_mfn_max';
+        Log::info('Получение максимального MFN:', $logContext);
+        
+        $max_mfn = $irbis->mfn_max();
+        Log::info("Максимальный MFN: " . $max_mfn, $logContext);
+        
+        // 10. Закрытие соединения
+        $logContext['step'] = 'irbis_logout';
+        Log::info('Закрытие соединения ИРБИС:', $logContext);
+        
+        $irbis->logout();
+        Log::info("Соединение с ИРБИС закрыто", $logContext);
+        
+        // 11. Успешный результат
+        $logContext['step'] = 'success';
+        Log::info('=== ТЕСТИРОВАНИЕ ЗАВЕРШЕНО УСПЕШНО ===', $logContext);
+        
+        return response()->json([
+            'success' => true,
+            'irbis_connected' => true,
+            'irbis_max_mfn' => $max_mfn,
+            'mysql_connected' => true,
+            'organizations_count' => $orgs_count,
+            'env_vars' => [
+                'IRBIS_HOST' => $irbis_host,
+                'IRBIS_PORT' => $irbis_port,
+                'IRBIS_USERNAME' => $irbis_username,
+                'IRBIS_DATABASE' => $irbis_database
+            ]
+        ]);
+        
+    } catch (\Exception $e) {
+        $logContext['step'] = 'exception';
+        Log::error('=== ОШИБКА ТЕСТИРОВАНИЯ (Exception) ===', array_merge($logContext, [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]));
+        
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'error_type' => 'Exception',
+            'step' => $logContext['step']
+        ], 500);
+        
+    } catch (\Error $e) {
+        $logContext['step'] = 'error';
+        Log::error('=== ФАТАЛЬНАЯ ОШИБКА ТЕСТИРОВАНИЯ (Error) ===', array_merge($logContext, [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]));
+        
+        return response()->json([
+            'success' => false,
+            'error' => 'Фатальная ошибка: ' . $e->getMessage(),
+            'error_type' => 'Error',
+            'step' => $logContext['step']
+        ], 500);
+        
+    } catch (\Throwable $e) {
+        $logContext['step'] = 'throwable';
+        Log::error('=== НЕПРЕДВИДЕННАЯ ОШИБКА ТЕСТИРОВАНИЯ (Throwable) ===', array_merge($logContext, [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]));
+        
+        return response()->json([
+            'success' => false,
+            'error' => 'Непредвиденная ошибка: ' . $e->getMessage(),
+            'error_type' => 'Throwable',
+            'step' => $logContext['step']
+        ], 500);
     }
+}
 }
